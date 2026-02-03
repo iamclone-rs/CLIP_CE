@@ -77,6 +77,19 @@ class Model(pl.LightningModule):
 
         self.best_metric = -1e3
 
+    def on_load_checkpoint(self, checkpoint) -> None:
+        """Backwards-compatible checkpoint loading.
+
+        Older checkpoints won't have newly introduced EMA buffers; initialize them
+        so strict state_dict loading doesn't fail.
+        """
+        state_dict = checkpoint.get('state_dict', None)
+        if not isinstance(state_dict, dict):
+            return
+        for key in ('ema_triplet', 'ema_contrastive', 'ema_cls'):
+            if key not in state_dict:
+                state_dict[key] = torch.tensor(1.0)
+
     def _warmup_scale(self) -> float:
         steps = int(self.loss_warmup_steps)
         if steps <= 0:
