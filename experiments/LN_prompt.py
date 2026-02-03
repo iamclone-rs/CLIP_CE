@@ -11,10 +11,11 @@ from src.dataset_retrieval import Sketchy
 from experiments.options import opts
 
 if __name__ == '__main__':
-    dataset_transforms = Sketchy.data_transform(opts)
+    train_transforms = Sketchy.data_transform(opts, mode='train')
+    val_transforms = Sketchy.data_transform(opts, mode='val')
 
-    train_dataset = Sketchy(opts, dataset_transforms, mode='train', return_orig=False)
-    val_dataset = Sketchy(opts, dataset_transforms, mode='val', used_cat=train_dataset.all_categories, return_orig=False)
+    train_dataset = Sketchy(opts, train_transforms, mode='train', return_orig=False)
+    val_dataset = Sketchy(opts, val_transforms, mode='val', used_cat=train_dataset.all_categories, return_orig=False)
 
     # Derive classes from the dataset being trained (no fixed / hard-coded class list).
     class_names = sorted(list(train_dataset.all_categories))

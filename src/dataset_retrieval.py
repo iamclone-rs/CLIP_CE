@@ -90,12 +90,32 @@ class Sketchy(torch.utils.data.Dataset):
             return (sk_tensor, img_tensor, neg_tensor, category, filename)
 
     @staticmethod
-    def data_transform(opts):
-        dataset_transforms = transforms.Compose([
-            transforms.Resize((opts.max_size, opts.max_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+    def data_transform(opts, mode: str = 'train'):
+        """Build torchvision transforms.
+
+        - mode='train': optional data augmentation (controlled by opts.use_augmentation)
+        - mode='val'  : deterministic preprocessing only
+        """
+
+        max_size = int(getattr(opts, 'max_size', 224))
+        use_aug = bool(getattr(opts, 'use_augmentation', True))
+
+        if mode == 'train' and use_aug:
+            dataset_transforms = transforms.Compose([
+                transforms.RandomResizedCrop(max_size, scale=(0.7, 1.0), ratio=(0.9, 1.1)),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.05),
+                transforms.RandomGrayscale(p=0.1),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+        else:
+            dataset_transforms = transforms.Compose([
+                transforms.Resize((max_size, max_size)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            ])
+
         return dataset_transforms
 
 
